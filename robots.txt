@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ai-text-cleaner-smoky.vercel.app/sitemap.xml
+Sitemap: korea.ceosuh@gmail.com/sitemap.xml
