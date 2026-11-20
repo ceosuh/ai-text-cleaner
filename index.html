@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 텍스트 복붙 클리너 - 마크다운·특수공백 제거기</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --ok: #059669;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 28px 18px 64px;
+    }
+    header {
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+    .options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 780px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    .panel-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .stats {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    textarea {
+      width: 100%;
+      min-height: 300px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      font-family: inherit;
+      color: var(--text);
+      background: #fcfcfd;
+    }
+    textarea:focus {
+      outline: 2px solid rgba(37, 99, 235, 0.25);
+      border-color: var(--accent);
+      background: #fff;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #f3f4f6; }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    button.primary:hover { background: var(--accent-hover); }
+    button.copied {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #fff;
+    }
+    .guide {
+      margin-top: 28px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      font-size: 0.92rem;
+      color: #374151;
+    }
+    .guide h2 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>AI 텍스트 복붙 클리너</h1>
+      <p class="subtitle">AI 답변을 붙여넣고 마크다운 기호(`**`, `###`, `` ` ``)와 숨은 특수공백을 한 번에 정리하세요.</p>
+    </header>
+
+    <div class="options">
+      <label><input type="checkbox" id="optMarkdown" checked /> 마크다운 기호 제거</label>
+      <label><input type="checkbox" id="optInvisible" checked /> 특수공백·숨은 문자 제거</label>
+      <label><input type="checkbox" id="optBlankLines" checked /> 연속 빈 줄 정리</label>
+      <label><input type="checkbox" id="optTables" /> 표 구분선(`|---`) 정리</label>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">원본 AI 텍스트</span>
+          <span class="stats" id="inStats">0자 · 숨은공백 0개</span>
+        </div>
+        <textarea id="inputText" placeholder="여기에 AI 답변을 붙여넣으세요..."></textarea>
+        <div class="actions">
+          <button type="button" id="sampleBtn">예시 넣기</button>
+          <button type="button" id="clearBtn">지우기</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">정리된 텍스트</span>
+          <span class="stats" id="outStats">0자</span>
+        </div>
+        <textarea id="outputText" readonly placeholder="정리된 결과가 여기에 표시됩니다."></textarea>
+        <div class="actions">
+          <button type="button" class="primary" id="copyBtn">원클릭 복사</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="guide">
+      <h2>왜 AI 답변을 복사할 때 이상한 기호와 공백이 남을까?</h2>
+      <p>
+        대부분의 AI 채팅 인터페이스는 보기 좋은 서식을 위해 마크다운 문법과 줄바꿈, 때로는 보이지 않는 유니코드 공백 문자를 함께 렌더링합니다.
+        이를 메모장, 카페 글쓰기, 문서 편집기 등에 그대로 붙여넣으면 별표나 특수문자가 섞이거나 줄 간격이 어색해질 수 있습니다.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    const inputEl = document.getElementById("inputText");
+    const outputEl = document.getElementById("outputText");
+    const inStatsEl = document.getElementById("inStats");
+    const outStatsEl = document.getElementById("outStats");
+    const copyBtn = document.getElementById("copyBtn");
+
+    const optMarkdown = document.getElementById("optMarkdown");
+    const optInvisible = document.getElementById("optInvisible");
+    const optBlankLines = document.getElementById("optBlankLines");
+    const optTables = document.getElementById("optTables");
+
+    const invisibleRegex = /[\u00A0\u1680\u2000-\u200B\u202F\u205F\u2060\u3000\uFEFF]/g;
+
+    function cleanText(raw) {
+      let text = raw.replace(/\r\n?/g, "\n");
+      const hiddenMatches = text.match(invisibleRegex);
+      const hiddenCount = hiddenMatches ? hiddenMatches.length : 0;
+
+      if (optInvisible.checked) {
+        text = text.replace(invisibleRegex, " ");
+      }
+
+      if (optMarkdown.checked) {
+        // 코드블록 펜스 제거(내부 텍스트 유지)
+        text = text.replace(/^```[^\n]*\n?/gm, "").replace(/\n?```$/gm, "");
+        // 제목(#), 인용(>), 리스트(-, *, +) 기호 정리
+        text = text.replace(/^\s{0,3}#{1,6}\s+/gm, "");
+        text = text.replace(/^\s{0,3}>\s?/gm, "");
+        text = text.replace(/^(\s*)[-*+]\s+/gm, "$1");
+        // 굵게/기울임/취소선/인라인 코드 정리
+        text = text.replace(/\*\*(.*?)\*\*/g, "$1");
+        text = text.replace(/__(.*?)__/g, "$1");
+        text = text.replace(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g, "$1");
+        text = text.replace(/(?<!_)_(?!_)([^_]+)(?<!_)_/g, "$1");
+        text = text.replace(/~~(.*?)~~/g, "$1");
+        text = text.replace(/`([^`]+)`/g, "$1");
+        // 마크다운 링크 [텍스트](url) -> 텍스트
+        text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1");
+      }
+
+      if (optTables.checked) {
+        text = text.replace(/^\s*\|?[\s:-]+(?:\|[\s:-]+)+\|?\s*$/gm, "");
+        text = text.replace(/^\s*\|/gm, "").replace(/\|\s*$/gm, "").replace(/\s*\|\s*/g, " | ");
+      }
+
+      // 각 줄 끝 불필요한 공백 제거
+      text = text.replace(/[ \t]+$/gm, "");
+
+      if (optBlankLines.checked) {
+        text = text.replace(/\n{3,}/g, "\n\n");
+      }
+
+      const trimmed = text.trim();
+      return { cleaned: trimmed, hiddenCount };
+    }
+
+    function update() {
+      const raw = inputEl.value;
+      const { cleaned, hiddenCount } = cleanText(raw);
+      outputEl.value = cleaned;
+      inStatsEl.textContent = `${raw.length.toLocaleString()}자 · 숨은공백 ${hiddenCount}개`;
+      outStatsEl.textContent = `${cleaned.length.toLocaleString()}자`;
+    }
+
+    [inputEl, optMarkdown, optInvisible, optBlankLines, optTables].forEach((el) => {
+      el.addEventListener("input", update);
+      el.addEventListener("change", update);
+    });
+
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+      inputEl.value =
+        "### 핵심 요약\n\n" +
+        "- **단일 기능 툴**은 `빠른 실행`과 *낮은 유지비*가 장점입니다.\u200B\n" +
+        "- 숨은\u00A0특수공백과\u200C\uFEFF 기호를 함께 지워보세요.\n\n\n\n" +
+        "| 항목 | 장점 |\n| --- | --- |\n| 광고 모델 | 초기 진입 장벽이 낮음 |";
+      update();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      inputEl.value = "";
+      update();
+      inputEl.focus();
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      if (!outputEl.value) return;
+      try {
+        await navigator.clipboard.writeText(outputEl.value);
+      } catch {
+        outputEl.select();
+        document.execCommand("copy");
+      }
+      const prev = copyBtn.textContent;
+      copyBtn.textContent = "복사 완료!";
+      copyBtn.classList.add("copied");
+      setTimeout(() => {
+        copyBtn.textContent = prev;
+        copyBtn.classList.remove("copied");
+      }, 1400);
+    });
+
+    update();
+  </script>
+</body>
+</html>
