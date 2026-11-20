@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로컬 이미지 용량 줄이기 &amp; WebP·JPG 변환기 | 로컬AI툴즈</title>
+  <meta name="description" content="서버 업로드 없이 브라우저에서 사진 용량을 최대 80% 줄이고 WebP, JPG, PNG로 일괄 변환하는 무료 이미지 압축 도구입니다. 신분증·문서 사진도 안전하게 처리하세요." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://spaceo.co.kr/compressor.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="로컬 이미지 용량 줄이기 &amp; 포맷 변환기 | 로컬AI툴즈" />
+  <meta property="og:description" content="100% 브라우저 로컬 처리! 여러 장의 사진 용량을 한 번에 줄이고 WebP·JPG·PNG로 즉시 변환하세요." />
+  <meta property="og:url" content="https://spaceo.co.kr/compressor.html" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗜️</text></svg>" />
+
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --ok: #059669;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .topnav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .topnav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .brand { font-weight: 800; font-size: 1.05rem; color: var(--text); text-decoration: none; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 6px; }
+    .nav-links a {
+      text-decoration: none;
+      color: #374151;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+    .nav-links a:hover { background: #f3f4f6; }
+    .nav-links a.active { background: #eff6ff; color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 56px; }
+    header { margin-bottom: 18px; }
+    .header-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+    h1 { margin: 0 0 6px; font-size: 1.6rem; letter-spacing: -0.02em; }
+    .trust-badge {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.94rem; }
+
+    .controls {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 22px;
+      align-items: center;
+      font-size: 0.88rem;
+    }
+    .ctrl-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ctrl-group label { font-weight: 600; color: #374151; }
+    select {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 0.86rem;
+    }
+    .quality-val {
+      min-width: 38px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .dropzone {
+      background: var(--card);
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      margin-bottom: 16px;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: #eff6ff;
+    }
+    .dropzone strong { display: block; font-size: 1.02rem; margin-bottom: 6px; }
+    .dropzone span { font-size: 0.86rem; color: var(--muted); }
+
+    .summary-bar {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+    .summary-stats strong { color: var(--ok); }
+
+    .result-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .result-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+    }
+    .thumb {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f3f4f6;
+      flex-shrink: 0;
+    }
+    .item-info { min-width: 0; }
+    .item-name {
+      font-weight: 700;
+      font-size: 0.92rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 340px;
+    }
+    .item-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .save-badge {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 1px 7px;
+      border-radius: 999px;
+      margin-left: 6px;
+    }
+    .save-badge.warn {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #f3f4f6; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.primary:hover { background: var(--accent-hover); }
+
+    .section {
+      margin-top: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .section h2 { margin: 0 0 12px; font-size: 1.1rem; }
+    details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      background: #fcfcfd;
+    }
+    summary { font-weight: 700; font-size: 0.94rem; cursor: pointer; }
+    details p { margin: 8px 0 0; font-size: 0.9rem; color: #4b5563; }
+
+    footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--text); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <nav class="topnav" aria-label="메인 메뉴">
+    <div class="topnav-inner">
+      <a class="brand" href="index.html">🧰 로컬AI툴즈</a>
+      <div class="nav-links">
+        <a href="cleaner.html">AI 텍스트 클리너</a>
+        <a href="masking.html">개인정보 마스킹</a>
+        <a href="table-export.html">표 엑셀·이미지 변환</a>
+        <a href="screenshot.html">스크린샷 모자이크</a>
+        <a href="pdf-tools.html">로컬 PDF 도구</a>
+        <a href="compressor.html" class="active">이미지 용량 줄이기</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header>
+      <div class="header-top">
+        <h1>로컬 이미지 용량 줄이기 &amp; 포맷 변환기</h1>
+        <span class="trust-badge">🔒 100% 브라우저 로컬 처리 · 사진 업로드 없음</span>
+      </div>
+      <p class="subtitle">여러 장의 JPG·PNG·WebP 사진을 화질 저하 없이 가볍게 압축하고 원하는 포맷으로 즉시 변환하세요.</p>
+    </header>
+
+    <main>
+      <div class="controls">
+        <div class="ctrl-group">
+          <label for="formatSelect">출력 포맷</label>
+          <select id="formatSelect">
+            <option value="image/webp" selected>WebP (용량 최소 · 웹/블로그 추천)</option>
+            <option value="image/jpeg">JPG (모든 곳 호환 · 제출 서류 추천)</option>
+            <option value="image/png">PNG (투명 배경 유지)</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label for="qualityRange">화질(압축률)</label>
+          <input type="range" id="qualityRange" min="10" max="100" value="80" />
+          <span class="quality-val" id="qualityVal">80%</span>
+        </div>
+        <div class="ctrl-group">
+          <label for="maxWidthSelect">가로 최대 크기</label>
+          <select id="maxWidthSelect">
+            <option value="0" selected>원본 크기 유지</option>
+            <option value="1920">1920px (고화질 FHD)</option>
+            <option value="1280">1280px (블로그·문서 권장)</option>
+            <option value="800">800px (웹·썸네일용)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <strong>여기에 이미지를 드래그하거나 클릭해 여러 장을 한 번에 선택하세요</strong>
+        <span>JPG, PNG, WebP 지원 · 클립보드 이미지 붙여넣기(Ctrl+V)도 가능합니다</span>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none;" />
+      </div>
+
+      <div class="summary-bar" id="summaryBar">
+        <div class="summary-stats" id="summaryStats"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" id="clearBtn">목록 비우기</button>
+          <button type="button" class="primary" id="downloadAllBtn">모두 저장</button>
+        </div>
+      </div>
+
+      <div class="result-list" id="resultList"></div>
+
+      <section class="section">
+        <h2>자주 묻는 질문 (FAQ)</h2>
+        <details open>
+          <summary>신분증 사본이나 증명사진 용량을 줄여도 안전한가요?</summary>
+          <p>네. 모든 이미지 압축과 포맷 변환은 사용자의 브라우저(Canvas API) 내부에서만 처리되며 외부 서버로 사진이 전송되지 않습니다.</p>
+        </details>
+        <details>
+          <summary>WebP, JPG, PNG 중 어떤 포맷을 선택하는 게 좋나요?</summary>
+          <p>블로그·웹사이트 업로드용이라면 용량이 가장 작고 선명한 <strong>WebP</strong>를 추천합니다. 관공서·채용 사이트 첨부파일이나 호환성이 중요한 곳에는 <strong>JPG</strong>, 배경이 투명한 로고나 아이콘에는 <strong>PNG</strong>를 선택하세요.</p>
+        </details>
+        <details>
+          <summary>PNG로 변환했는데 용량이 줄어들지 않는 이유는 무엇인가요?</summary>
+          <p>PNG는 무손실 압축 방식이라 화질 슬라이더가 적용되지 않습니다. 용량을 확 줄이려면 출력 포맷을 <strong>WebP</strong> 또는 <strong>JPG</strong>로 바꾸거나 가로 최대 크기를 줄여 보세요.</p>
+        </details>
+      </section>
+    </main>
+
+    <footer>
+      <div>© 2026 로컬AI툴즈 (spaceo.co.kr). All rights reserved.</div>
+      <div class="footer-links">
+        <a href="index.html">전체 도구</a>
+        <a href="privacy.html">개인정보처리방침</a>
+        <a href="terms.html">이용약관</a>
+        <a href="mailto:korea.ceosuh@gmail.com">문의하기</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("fileInput");
+    const formatSelect = document.getElementById("formatSelect");
+    const qualityRange = document.getElementById("qualityRange");
+    const qualityVal = document.getElementById("qualityVal");
+    const maxWidthSelect = document.getElementById("maxWidthSelect");
+    const summaryBar = document.getElementById("summaryBar");
+    const summaryStats = document.getElementById("summaryStats");
+    const resultList = document.getElementById("resultList");
+
+    let items = []; // { id, file, img, origSize, outBlob, outUrl, outName, outW, outH }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + " B";
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+      return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
+    function getExt(mime) {
+      if (mime === "image/webp") return "webp";
+      if (mime === "image/jpeg") return "jpg";
+      return "png";
+    }
+
+    function compressImage(item) {
+      return new Promise((resolve) => {
+        const mime = formatSelect.value;
+        const quality = Number(qualityRange.value) / 100;
+        const maxW = Number(maxWidthSelect.value);
+
+        let w = item.img.naturalWidth;
+        let h = item.img.naturalHeight;
+        if (maxW > 0 && w > maxW) {
+          h = Math.round(h * (maxW / w));
+          w = maxW;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+
+        if (mime === "image/jpeg") {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, w, h);
+        }
+        ctx.drawImage(item.img, 0, 0, w, h);
+
+        canvas.toBlob((blob) => {
+          if (item.outUrl) URL.revokeObjectURL(item.outUrl);
+          item.outBlob = blob;
+          item.outUrl = URL.createObjectURL(blob);
+          item.outW = w;
+          item.outH = h;
+          const baseName = item.file.name.replace(/\.[^.]+$/, "");
+          item.outName = `${baseName}.${getExt(mime)}`;
+          resolve();
+        }, mime, mime === "image/png" ? undefined : quality);
+      });
+    }
+
+    async function processAll() {
+      for (const item of items) {
+        await compressImage(item);
+      }
+      renderList();
+    }
+
+    function renderList() {
+      if (items.length === 0) {
+        summaryBar.style.display = "none";
+        resultList.innerHTML = "";
+        return;
+      }
+
+      summaryBar.style.display = "flex";
+      const totalOrig = items.reduce((s, i) => s + i.origSize, 0);
+      const totalOut = items.reduce((s, i) => s + (i.outBlob ? i.outBlob.size : 0), 0);
+      const diffPct = totalOrig > 0 ? Math.round((1 - totalOut / totalOrig) * 100) : 0;
+
+      summaryStats.innerHTML =
+        `총 ${items.length}장 · ${formatBytes(totalOrig)} → <strong>${formatBytes(totalOut)}</strong> ` +
+        `(${diffPct >= 0 ? diffPct + "% 절감" : Math.abs(diffPct) + "% 증가"})`;
+
+      resultList.innerHTML = "";
+      items.forEach((item, idx) => {
+        const outSize = item.outBlob ? item.outBlob.size : 0;
+        const pct = item.origSize > 0 ? Math.round((1 - outSize / item.origSize) * 100) : 0;
+        const badgeClass = pct >= 0 ? "save-badge" : "save-badge warn";
+        const badgeText = pct >= 0 ? `-${pct}%` : `+${Math.abs(pct)}%`;
+
+        const div = document.createElement("div");
+        div.className = "result-item";
+        div.innerHTML = `
+          <div class="item-left">
+            <img class="thumb" src="${item.outUrl}" alt="" />
+            <div class="item-info">
+              <div class="item-name">${item.outName.replace(/</g, "&lt;")}</div>
+              <div class="item-meta">
+                ${item.outW}×${item.outH}px · ${formatBytes(item.origSize)} → <strong>${formatBytes(outSize)}</strong>
+                <span class="${badgeClass}">${badgeText}</span>
+              </div>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button type="button" class="primary" data-act="dl" data-idx="${idx}">저장</button>
+            <button type="button" data-act="del" data-idx="${idx}">삭제</button>
+          </div>
+        `;
+        resultList.appendChild(div);
+      });
+    }
+
+    function addFiles(fileList) {
+      const files = Array.from(fileList).filter(f => f.type.startsWith("image/"));
+      if (files.length === 0) return;
+
+      let loadedCount = 0;
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = async () => {
+            const item = {
+              id: Date.now() + Math.random(),
+              file,
+              img,
+              origSize: file.size,
+              outBlob: null,
+              outUrl: null,
+              outName: file.name,
+              outW: img.naturalWidth,
+              outH: img.naturalHeight
+            };
+            items.push(item);
+            await compressImage(item);
+            loadedCount++;
+            if (loadedCount === files.length) renderList();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    dropzone.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => {
+      addFiles(e.target.files);
+      fileInput.value = "";
+    });
+    dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      addFiles(e.dataTransfer.files);
+    });
+
+    window.addEventListener("paste", (e) => {
+      const clipItems = e.clipboardData && e.clipboardData.items;
+      if (!clipItems) return;
+      const files = [];
+      for (const ci of clipItems) {
+        if (ci.type.startsWith("image/")) {
+          const f = ci.getAsFile();
+          if (f) files.push(f);
+        }
+      }
+      if (files.length > 0) addFiles(files);
+    });
+
+    qualityRange.addEventListener("input", () => {
+      qualityVal.textContent = qualityRange.value + "%";
+    });
+
+    [formatSelect, qualityRange, maxWidthSelect].forEach(el => {
+      el.addEventListener("change", () => {
+        qualityRange.disabled = formatSelect.value === "image/png";
+        qualityVal.textContent = formatSelect.value === "image/png" ? "무손실" : qualityRange.value + "%";
+        if (items.length > 0) processAll();
+      });
+    });
+
+    resultList.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      const idx = Number(btn.dataset.idx);
+      const act = btn.dataset.act;
+      if (act === "dl") {
+        const item = items[idx];
+        const a = document.createElement("a");
+        a.href = item.outUrl;
+        a.download = item.outName;
+        a.click();
+      } else if (act === "del") {
+        if (items[idx].outUrl) URL.revokeObjectURL(items[idx].outUrl);
+        items.splice(idx, 1);
+        renderList();
+      }
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      items.forEach(i => { if (i.outUrl) URL.revokeObjectURL(i.outUrl); });
+      items = [];
+      renderList();
+    });
+
+    document.getElementById("downloadAllBtn").addEventListener("click", () => {
+      items.forEach((item, idx) => {
+        setTimeout(() => {
+          const a = document.createElement("a");
+          a.href = item.outUrl;
+          a.download = item.outName;
+          a.click();
+        }, idx * 180);
+      });
+    });
+  </script>
+</body>
+</html>
