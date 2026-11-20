@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: korea.ceosuh@gmail.com/sitemap.xml
+Sitemap: https://spaceo.co.kr/sitemap.xml
