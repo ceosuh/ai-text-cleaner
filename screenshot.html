@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스크린샷 원클릭 모자이크 &amp; 프레임 꾸미기 | 로컬AI툴즈</title>
+  <meta name="description" content="캡처 화면을 Ctrl+V로 붙여넣고 민감한 개인정보만 드래그해 모자이크·블러 처리한 뒤 깔끔한 배경과 그림자 프레임으로 저장하는 100% 로컬 무료 도구입니다." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://spaceo.co.kr/screenshot.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="스크린샷 모자이크 &amp; 프레임 꾸미기 | 로컬AI툴즈" />
+  <meta property="og:description" content="포토샵 없이 캡처 붙여넣기 → 드래그 모자이크 → 깔끔한 프레임 저장까지 3초 만에 끝내세요." />
+  <meta property="og:url" content="https://spaceo.co.kr/screenshot.html" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖼️</text></svg>" />
+
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --ok: #059669;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .topnav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .topnav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .brand { font-weight: 800; font-size: 1.05rem; color: var(--text); text-decoration: none; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 6px; }
+    .nav-links a {
+      text-decoration: none;
+      color: #374151;
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+    .nav-links a:hover { background: #f3f4f6; }
+    .nav-links a.active { background: #eff6ff; color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 56px; }
+    header { margin-bottom: 18px; }
+    .header-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+    h1 { margin: 0 0 6px; font-size: 1.6rem; letter-spacing: -0.02em; }
+    .trust-badge {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.94rem; }
+    .controls {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 20px;
+      align-items: center;
+      font-size: 0.86rem;
+    }
+    .ctrl-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ctrl-group label { font-weight: 600; color: #374151; }
+    select, input[type="range"] { cursor: pointer; }
+    select {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 0.85rem;
+    }
+    .dropzone {
+      background: var(--card);
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 44px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: #eff6ff;
+    }
+    .dropzone strong { display: block; font-size: 1.05rem; margin-bottom: 6px; }
+    .dropzone span { font-size: 0.88rem; color: var(--muted); }
+    .canvas-area {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+    .canvas-hint {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    canvas {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      cursor: crosshair;
+      touch-action: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 9px 15px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #f3f4f6; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.primary:hover { background: var(--accent-hover); }
+    button.copied { background: var(--ok); border-color: var(--ok); color: #fff; }
+    .section {
+      margin-top: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .section h2 { margin: 0 0 10px; font-size: 1.1rem; }
+    .section p { margin: 0 0 8px; font-size: 0.9rem; color: #4b5563; }
+    footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--text); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <nav class="topnav" aria-label="메인 메뉴">
+    <div class="topnav-inner">
+      <a class="brand" href="index.html">🧰 로컬AI툴즈</a>
+      <div class="nav-links">
+        <a href="cleaner.html">AI 텍스트 클리너</a>
+        <a href="masking.html">개인정보 마스킹</a>
+        <a href="table-export.html">표 엑셀·이미지 변환</a>
+        <a href="screenshot.html" class="active">스크린샷 모자이크</a>
+        <a href="pdf-tools.html">로컬 PDF 도구</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header>
+      <div class="header-top">
+        <h1>스크린샷 원클릭 모자이크 &amp; 프레임 꾸미기</h1>
+        <span class="trust-badge">🔒 100% 브라우저 로컬 처리 · 이미지 업로드 없음</span>
+      </div>
+      <p class="subtitle">캡처 화면을 <strong>Ctrl+V</strong>로 붙여넣고 가릴 부분만 드래그하세요. 모자이크와 깔끔한 배경 프레임을 한 번에 입혀 저장합니다.</p>
+    </header>
+
+    <main>
+      <div class="controls">
+        <div class="ctrl-group">
+          <label for="censorMode">가리기 방식</label>
+          <select id="censorMode">
+            <option value="mosaic">모자이크 (픽셀)</option>
+            <option value="blur">흐리게 (블러)</option>
+            <option value="black">검은색 가림</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label for="bgPreset">배경 프레임</label>
+          <select id="bgPreset">
+            <option value="none">없음 (원본 크기)</option>
+            <option value="blue" selected>블루-퍼플 그라데이션</option>
+            <option value="mint">민트-스카이 그라데이션</option>
+            <option value="sunset">선셋 그라데이션</option>
+            <option value="gray">클린 그레이</option>
+            <option value="dark">다크 슬레이트</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label for="padRange">여백</label>
+          <input type="range" id="padRange" min="0" max="80" value="36" />
+        </div>
+        <div class="ctrl-group">
+          <label for="radiusRange">둥근 모서리</label>
+          <input type="range" id="radiusRange" min="0" max="32" value="14" />
+        </div>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <strong>여기에 스크린샷을 Ctrl+V로 붙여넣거나 클릭해서 파일을 선택하세요</strong>
+        <span>PNG, JPG, WebP 지원 · 이미지를 드래그 앤 드롭해도 바로 열립니다</span>
+        <input type="file" id="fileInput" accept="image/*" style="display:none;" />
+      </div>
+
+      <div class="canvas-area" id="canvasArea">
+        <div class="canvas-hint">💡 이미지 위에서 마우스(또는 손가락)로 드래그하면 해당 영역이 즉시 모자이크 처리됩니다.</div>
+        <canvas id="editorCanvas"></canvas>
+        <div class="actions">
+          <button type="button" id="undoBtn">↩ 마지막 모자이크 취소</button>
+          <button type="button" id="resetCensorBtn">모자이크 전체 지우기</button>
+          <button type="button" id="newImgBtn">다른 이미지 열기</button>
+          <button type="button" id="copyImgBtn">클립보드 복사</button>
+          <button type="button" class="primary" id="downloadBtn">PNG 이미지 저장</button>
+        </div>
+      </div>
+
+      <section class="section">
+        <h2>빠른 사용 팁</h2>
+        <p>1. Windows(<code>Win + Shift + S</code>)나 Mac(<code>Cmd + Shift + 4</code>)으로 화면을 캡처한 뒤, 이 페이지 아무 곳에서나 <strong>Ctrl+V (Cmd+V)</strong>를 누르면 파일 저장 없이 바로 편집이 시작됩니다.</p>
+        <p>2. 원본 스크린샷 크기 그대로 모자이크만 하고 싶다면 상단 배경 프레임을 <strong>없음 (원본 크기)</strong>으로 선택하세요.</p>
+      </section>
+    </main>
+
+    <footer>
+      <div>© 2026 로컬AI툴즈 (spaceo.co.kr). All rights reserved.</div>
+      <div class="footer-links">
+        <a href="index.html">전체 도구</a>
+        <a href="privacy.html">개인정보처리방침</a>
+        <a href="terms.html">이용약관</a>
+        <a href="mailto:korea.ceosuh@gmail.com">문의하기</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("fileInput");
+    const canvasArea = document.getElementById("canvasArea");
+    const canvas = document.getElementById("editorCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const censorMode = document.getElementById("censorMode");
+    const bgPreset = document.getElementById("bgPreset");
+    const padRange = document.getElementById("padRange");
+    const radiusRange = document.getElementById("radiusRange");
+
+    let img = null;
+    let boxes = []; // { x, y, w, h, mode } in original image coordinates
+    let dragging = false;
+    let startPt = null;
+    let currentBox = null;
+
+    function getPadding() {
+      return bgPreset.value === "none" ? 0 : Number(padRange.value);
+    }
+
+    function loadImageFile(file) {
+      if (!file || !file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const loaded = new Image();
+        loaded.onload = () => {
+          img = loaded;
+          boxes = [];
+          dropzone.style.display = "none";
+          canvasArea.style.display = "block";
+          render();
+        };
+        loaded.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function drawRoundedRect(c, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      c.beginPath();
+      c.moveTo(x + radius, y);
+      c.arcTo(x + w, y, x + w, y + h, radius);
+      c.arcTo(x + w, y + h, x, y + h, radius);
+      c.arcTo(x, y + h, x, y, radius);
+      c.arcTo(x, y, x + w, y, radius);
+      c.closePath();
+    }
+
+    function applyCensorBox(c, box, pad) {
+      const bx = Math.round(box.x);
+      const by = Math.round(box.y);
+      const bw = Math.round(box.w);
+      const bh = Math.round(box.h);
+      if (bw < 2 || bh < 2) return;
+
+      if (box.mode === "black") {
+        c.fillStyle = "#111827";
+        c.fillRect(pad + bx, pad + by, bw, bh);
+      } else if (box.mode === "blur") {
+        c.save();
+        c.beginPath();
+        c.rect(pad + bx, pad + by, bw, bh);
+        c.clip();
+        c.filter = "blur(12px)";
+        c.drawImage(img, pad, pad);
+        c.restore();
+      } else {
+        // pixel mosaic
+        const block = Math.max(8, Math.round(Math.min(img.width, img.height) / 55));
+        const sw = Math.max(1, Math.ceil(bw / block));
+        const sh = Math.max(1, Math.ceil(bh / block));
+        const temp = document.createElement("canvas");
+        temp.width = sw;
+        temp.height = sh;
+        const tctx = temp.getContext("2d");
+        tctx.drawImage(img, bx, by, bw, bh, 0, 0, sw, sh);
+        c.save();
+        c.imageSmoothingEnabled = false;
+        c.drawImage(temp, 0, 0, sw, sh, pad + bx, pad + by, bw, bh);
+        c.restore();
+      }
+    }
+
+    function render() {
+      if (!img) return;
+      const pad = getPadding();
+      const rad = bgPreset.value === "none" ? 0 : Number(radiusRange.value);
+      canvas.width = img.width + pad * 2;
+      canvas.height = img.height + pad * 2;
+
+      // 1. Background
+      if (pad > 0) {
+        const bg = bgPreset.value;
+        if (bg === "blue") {
+          const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+          g.addColorStop(0, "#3b82f6");
+          g.addColorStop(1, "#8b5cf6");
+          ctx.fillStyle = g;
+        } else if (bg === "mint") {
+          const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+          g.addColorStop(0, "#10b981");
+          g.addColorStop(1, "#0ea5e9");
+          ctx.fillStyle = g;
+        } else if (bg === "sunset") {
+          const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+          g.addColorStop(0, "#f97316");
+          g.addColorStop(1, "#ec4899");
+          ctx.fillStyle = g;
+        } else if (bg === "gray") {
+          ctx.fillStyle = "#e2e8f0";
+        } else if (bg === "dark") {
+          ctx.fillStyle = "#1e293b";
+        }
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // 2. Shadow + Rounded Image
+      ctx.save();
+      if (pad > 0) {
+        ctx.shadowColor = "rgba(15, 23, 42, 0.28)";
+        ctx.shadowBlur = Math.min(36, pad);
+        ctx.shadowOffsetY = Math.min(14, pad / 3);
+        drawRoundedRect(ctx, pad, pad, img.width, img.height, rad);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.save();
+      drawRoundedRect(ctx, pad, pad, img.width, img.height, rad);
+      ctx.clip();
+      ctx.drawImage(img, pad, pad);
+
+      // 3. Censor boxes
+      boxes.forEach(b => applyCensorBox(ctx, b, pad));
+      if (currentBox) applyCensorBox(ctx, currentBox, pad);
+      ctx.restore();
+
+      // 4. Drag guide box
+      if (currentBox) {
+        ctx.save();
+        ctx.strokeStyle = "#2563eb";
+        ctx.lineWidth = Math.max(2, canvas.width / 450);
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(pad + currentBox.x, pad + currentBox.y, currentBox.w, currentBox.h);
+        ctx.restore();
+      }
+    }
+
+    function getImagePoint(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+      const pad = getPadding();
+      const cx = (clientX - rect.left) * (canvas.width / rect.width) - pad;
+      const cy = (clientY - rect.top) * (canvas.height / rect.height) - pad;
+      return {
+        x: Math.max(0, Math.min(img.width, cx)),
+        y: Math.max(0, Math.min(img.height, cy))
+      };
+    }
+
+    function onStart(evt) {
+      if (!img) return;
+      evt.preventDefault();
+      dragging = true;
+      startPt = getImagePoint(evt);
+      currentBox = { x: startPt.x, y: startPt.y, w: 0, h: 0, mode: censorMode.value };
+    }
+
+    function onMove(evt) {
+      if (!dragging || !img) return;
+      evt.preventDefault();
+      const pt = getImagePoint(evt);
+      currentBox = {
+        x: Math.min(startPt.x, pt.x),
+        y: Math.min(startPt.y, pt.y),
+        w: Math.abs(pt.x - startPt.x),
+        h: Math.abs(pt.y - startPt.y),
+        mode: censorMode.value
+      };
+      render();
+    }
+
+    function onEnd() {
+      if (!dragging) return;
+      dragging = false;
+      if (currentBox && currentBox.w > 4 && currentBox.h > 4) {
+        boxes.push(currentBox);
+      }
+      currentBox = null;
+      render();
+    }
+
+    canvas.addEventListener("mousedown", onStart);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onEnd);
+    canvas.addEventListener("touchstart", onStart, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onEnd);
+
+    dropzone.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => loadImageFile(e.target.files[0]));
+    dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      loadImageFile(e.dataTransfer.files[0]);
+    });
+
+    window.addEventListener("paste", (e) => {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          loadImageFile(item.getAsFile());
+          break;
+        }
+      }
+    });
+
+    [bgPreset, padRange, radiusRange].forEach(el => {
+      el.addEventListener("input", render);
+      el.addEventListener("change", render);
+    });
+
+    document.getElementById("undoBtn").addEventListener("click", () => {
+      boxes.pop();
+      render();
+    });
+
+    document.getElementById("resetCensorBtn").addEventListener("click", () => {
+      boxes = [];
+      render();
+    });
+
+    document.getElementById("newImgBtn").addEventListener("click", () => fileInput.click());
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+      if (!img) return;
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "screenshot-edited.png";
+      a.click();
+    });
+
+    document.getElementById("copyImgBtn").addEventListener("click", async (e) => {
+      if (!img) return;
+      const btn = e.target;
+      try {
+        const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        const prev = btn.textContent;
+        btn.textContent = "이미지 복사 완료!";
+        btn.classList.add("copied");
+        setTimeout(() => { btn.textContent = prev; btn.classList.remove("copied"); }, 1400);
+      } catch {
+        alert("현재 브라우저에서는 이미지 클립보드 복사가 제한됩니다. PNG 저장 버튼을 이용해 주세요.");
+      }
+    });
+  </script>
+</body>
+</html>
