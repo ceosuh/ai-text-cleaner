@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ai-text-cleaner-smoky.vercel.app.pages.dev/sitemap.xml
