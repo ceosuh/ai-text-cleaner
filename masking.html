@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 질문 전 개인정보 자동 마스킹 &amp; 복원기 | 로컬AI툴즈</title>
+  <meta name="description" content="챗GPT·Claude에 업무 문서나 이메일을 넣기 전 전화번호, 이메일, 주민번호, 계좌번호, 회사명을 자동 가명화하고, AI 답변을 받은 뒤 원래 정보로 1초 만에 복원하는 무료 보안 도구입니다." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://spaceo.co.kr/masking.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AI 질문 전 개인정보 자동 마스킹 &amp; 복원기 | 로컬AI툴즈" />
+  <meta property="og:description" content="전화번호, 이메일, 계좌번호, 회사명을 안전하게 가명화한 뒤 AI 답변을 원래 정보로 1초 만에 복원하세요." />
+  <meta property="og:url" content="https://spaceo.co.kr/masking.html" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>" />
+
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --ok: #059669;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .topnav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .topnav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .brand { font-weight: 800; font-size: 1.05rem; color: var(--text); text-decoration: none; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 6px; }
+    .nav-links a {
+      text-decoration: none;
+      color: #374151;
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+    .nav-links a:hover { background: #f3f4f6; }
+    .nav-links a.active { background: #eff6ff; color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 56px; }
+    header { margin-bottom: 18px; }
+    .header-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+    h1 { margin: 0 0 6px; font-size: 1.6rem; letter-spacing: -0.02em; }
+    .trust-badge {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.94rem; }
+    .options-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .checks { display: flex; flex-wrap: wrap; gap: 12px 18px; font-size: 0.88rem; margin-bottom: 12px; }
+    .checks label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+    .custom-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .custom-row input[type="text"] {
+      flex: 1;
+      min-width: 240px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.88rem;
+    }
+    .step-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin: 22px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 780px) { .grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .panel-title { font-weight: 700; font-size: 0.94rem; }
+    .stats { font-size: 0.8rem; color: var(--muted); }
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      font-family: inherit;
+      background: #fcfcfd;
+    }
+    textarea:focus { outline: 2px solid rgba(37, 99, 235, 0.2); border-color: var(--accent); background: #fff; }
+    .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #f3f4f6; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.primary:hover { background: var(--accent-hover); }
+    button.copied { background: var(--ok); border-color: var(--ok); color: #fff; }
+    .map-box {
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .map-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .map-chip {
+      font-size: 0.82rem;
+      background: #f3f4f6;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .map-chip strong { color: var(--accent); }
+    .section {
+      margin-top: 26px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .section h2 { margin: 0 0 10px; font-size: 1.1rem; }
+    .section p { margin: 0 0 8px; font-size: 0.9rem; color: #4b5563; }
+    footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--text); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <nav class="topnav" aria-label="메인 메뉴">
+    <div class="topnav-inner">
+      <a class="brand" href="index.html">🧰 로컬AI툴즈</a>
+      <div class="nav-links">
+        <a href="cleaner.html">AI 텍스트 클리너</a>
+        <a href="masking.html" class="active">개인정보 마스킹</a>
+        <a href="table-export.html">표 엑셀·이미지 변환</a>
+        <a href="screenshot.html">스크린샷 모자이크</a>
+        <a href="pdf-tools.html">로컬 PDF 도구</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header>
+      <div class="header-top">
+        <h1>AI 질문 전 개인정보 자동 마스킹 &amp; 복원기</h1>
+        <span class="trust-badge">🔒 100% 브라우저 로컬 처리 · 외부 전송 없음</span>
+      </div>
+      <p class="subtitle">민감한 계약서·이메일·고객 정보를 가명으로 바꿔 안전하게 AI에 질문하고, AI 답변을 받으면 원래 정보로 1초 만에 복원하세요.</p>
+    </header>
+
+    <main>
+      <div class="options-box">
+        <div class="checks">
+          <label><input type="checkbox" id="optPhone" checked /> 전화번호</label>
+          <label><input type="checkbox" id="optEmail" checked /> 이메일</label>
+          <label><input type="checkbox" id="optRrn" checked /> 주민·외국인번호</label>
+          <label><input type="checkbox" id="optCard" checked /> 카드번호</label>
+          <label><input type="checkbox" id="optAccount" checked /> 계좌번호</label>
+        </div>
+        <div class="custom-row">
+          <input type="text" id="customWords" placeholder="추가로 가릴 이름·회사명·프로젝트명을 쉼표(,)로 구분해 입력 (예: 홍길동, 에이비씨주식회사)" />
+        </div>
+      </div>
+
+      <div class="step-title"><span class="step-badge">STEP 1</span> AI에 질문하기 전 개인정보 가리기</div>
+      <div class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">원본 문서 / 이메일</span>
+            <span class="stats" id="maskCount">마스킹 0건</span>
+          </div>
+          <textarea id="rawInput" placeholder="AI에 물어볼 계약서, 이메일, 상담 내용을 여기에 붙여넣으세요..."></textarea>
+          <div class="actions">
+            <button type="button" id="sampleBtn">예시 넣기</button>
+            <button type="button" id="clearAllBtn">전체 초기화</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">안전하게 마스킹된 텍스트 (AI에 복사할 내용)</span>
+          </div>
+          <textarea id="maskedOutput" readonly placeholder="개인정보가 [전화번호1], [이메일1] 등으로 치환됩니다."></textarea>
+          <div class="actions">
+            <button type="button" class="primary" id="copyMaskedBtn">마스킹 텍스트 복사</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-box">
+        <div style="font-size:0.88rem; font-weight:700;">치환 매핑 목록 <span style="font-weight:400; color:#6b7280;">(브라우저 메모리에만 임시 보관되며 새로고침 시 즉시 삭제됩니다)</span></div>
+        <div class="map-list" id="mapList"><span style="font-size:0.84rem; color:#9ca3af;">아직 치환된 항목이 없습니다.</span></div>
+      </div>
+
+      <div class="step-title"><span class="step-badge">STEP 2</span> AI 답변을 원래 정보로 자동 복원하기</div>
+      <div class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">AI가 준 답변 붙여넣기</span>
+          </div>
+          <textarea id="aiReplyInput" placeholder="[전화번호1], [지정어1] 등이 포함된 AI 답변을 여기에 붙여넣으세요..."></textarea>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">원래 정보로 복원된 최종 텍스트</span>
+          </div>
+          <textarea id="restoredOutput" readonly placeholder="치환되었던 원래 이름·연락처가 자동으로 복원됩니다."></textarea>
+          <div class="actions">
+            <button type="button" class="primary" id="copyRestoredBtn">복원 텍스트 복사</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="section">
+        <h2>안전한 활용 가이드</h2>
+        <p>1. 회사 내부 문서를 챗GPT·Claude에 요약하거나 번역할 때, 본 도구로 개인정보와 회사명을 먼저 치환한 뒤 질문하세요.</p>
+        <p>2. AI에게 질문할 때 <strong>"대괄호([전화번호1], [지정어1]) 표기는 바꾸지 말고 그대로 유지해 줘"</strong>라고 한 줄 덧붙이면 복원 정확도가 100%에 가까워집니다.</p>
+      </section>
+    </main>
+
+    <footer>
+      <div>© 2026 로컬AI툴즈 (spaceo.co.kr). All rights reserved.</div>
+      <div class="footer-links">
+        <a href="index.html">전체 도구</a>
+        <a href="privacy.html">개인정보처리방침</a>
+        <a href="terms.html">이용약관</a>
+        <a href="mailto:korea.ceosuh@gmail.com">문의하기</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const rawInput = document.getElementById("rawInput");
+    const maskedOutput = document.getElementById("maskedOutput");
+    const aiReplyInput = document.getElementById("aiReplyInput");
+    const restoredOutput = document.getElementById("restoredOutput");
+    const customWords = document.getElementById("customWords");
+    const maskCountEl = document.getElementById("maskCount");
+    const mapListEl = document.getElementById("mapList");
+
+    const optPhone = document.getElementById("optPhone");
+    const optEmail = document.getElementById("optEmail");
+    const optRrn = document.getElementById("optRrn");
+    const optCard = document.getElementById("optCard");
+    const optAccount = document.getElementById("optAccount");
+
+    let placeholderToOriginal = new Map();
+
+    function escapeRegExp(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function runMasking() {
+      let text = rawInput.value;
+      const origToToken = new Map();
+      const tokenToOrig = new Map();
+      const counters = {};
+
+      function getToken(label, match) {
+        if (origToToken.has(match)) return origToToken.get(match);
+        counters[label] = (counters[label] || 0) + 1;
+        const token = `[${label}${counters[label]}]`;
+        origToToken.set(match, token);
+        tokenToOrig.set(token, match);
+        return token;
+      }
+
+      const customs = customWords.value
+        .split(/[,\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .sort((a, b) => b.length - a.length);
+
+      for (const word of customs) {
+        const re = new RegExp(escapeRegExp(word), "g");
+        text = text.replace(re, (m) => getToken("지정어", m));
+      }
+
+      if (optRrn.checked) {
+        text = text.replace(/\b\d{6}-[1-4]\d{6}\b/g, (m) => getToken("주민번호", m));
+      }
+      if (optCard.checked) {
+        text = text.replace(/\b\d{4}[-\s]\d{4}[-\s]\d{4}[-\s]\d{4}\b/g, (m) => getToken("카드번호", m));
+      }
+      if (optEmail.checked) {
+        text = text.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, (m) => getToken("이메일", m));
+      }
+      if (optPhone.checked) {
+        text = text.replace(/(?:\+?82[-.\s]?)?0(?:1[016789]|2|[3-6][1-5]|70)[-.\s]?\d{3,4}[-.\s]?\d{4}/g, (m) => getToken("전화번호", m));
+      }
+      if (optAccount.checked) {
+        text = text.replace(/\b\d{3,6}-\d{2,6}-\d{3,6}(?:-\d{1,3})?\b/g, (m) => getToken("계좌번호", m));
+      }
+
+      placeholderToOriginal = tokenToOrig;
+      maskedOutput.value = text;
+      maskCountEl.textContent = `마스킹 ${tokenToOrig.size}건`;
+
+      if (tokenToOrig.size === 0) {
+        mapListEl.innerHTML = '<span style="font-size:0.84rem; color:#9ca3af;">아직 치환된 항목이 없습니다.</span>';
+      } else {
+        mapListEl.innerHTML = "";
+        tokenToOrig.forEach((orig, tok) => {
+          const span = document.createElement("span");
+          span.className = "map-chip";
+          span.innerHTML = `<strong>${tok}</strong> ← ${orig.replace(/</g, "&lt;")}`;
+          mapListEl.appendChild(span);
+        });
+      }
+
+      runRestore();
+    }
+
+    function runRestore() {
+      let reply = aiReplyInput.value;
+      placeholderToOriginal.forEach((orig, tok) => {
+        reply = reply.split(tok).join(orig);
+      });
+      restoredOutput.value = reply;
+    }
+
+    async function copyText(el, btn) {
+      if (!el.value) return;
+      try {
+        await navigator.clipboard.writeText(el.value);
+      } catch {
+        el.select();
+        document.execCommand("copy");
+      }
+      const prev = btn.textContent;
+      btn.textContent = "복사 완료!";
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.textContent = prev;
+        btn.classList.remove("copied");
+      }, 1400);
+    }
+
+    [rawInput, customWords, optPhone, optEmail, optRrn, optCard, optAccount].forEach((el) => {
+      el.addEventListener("input", runMasking);
+      el.addEventListener("change", runMasking);
+    });
+    aiReplyInput.addEventListener("input", runRestore);
+
+    document.getElementById("copyMaskedBtn").addEventListener("click", (e) => copyText(maskedOutput, e.target));
+    document.getElementById("copyRestoredBtn").addEventListener("click", (e) => copyText(restoredOutput, e.target));
+
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+      customWords.value = "김민수, 한빛솔루션";
+      rawInput.value =
+        "안녕하세요, 한빛솔루션 김민수 팀장입니다.\n" +
+        "계약서 검토 요청드립니다. 연락처는 010-1234-5678, 이메일은 minsu.kim@hanbit.co.kr 입니다.\n" +
+        "정산 계좌는 110-456-789012 이며, 담당자 김민수에게 회신 부탁드립니다.";
+      aiReplyInput.value =
+        "[지정어2] [지정어1] 팀장님, 안녕하세요.\n" +
+        "전달주신 계약서 검토를 완료했습니다. 수정본은 [이메일1]로 발송드렸으며, 정산은 [계좌번호1]로 진행하겠습니다. 추가 문의 시 [전화번호1]로 연락드리겠습니다.";
+      runMasking();
+    });
+
+    document.getElementById("clearAllBtn").addEventListener("click", () => {
+      rawInput.value = "";
+      aiReplyInput.value = "";
+      customWords.value = "";
+      runMasking();
+    });
+
+    runMasking();
+  </script>
+</body>
+</html>
