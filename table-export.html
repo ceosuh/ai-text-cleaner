@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 마크다운 표 → 엑셀(.xlsx) · 이미지(PNG) 변환기 | 로컬AI툴즈</title>
+  <meta name="description" content="챗GPT·Claude가 만들어 준 마크다운 표를 한글 깨짐 없는 엑셀(.xlsx), CSV 파일 및 깔끔한 고해상도 표 이미지(PNG)로 1초 만에 변환하는 무료 웹 도구입니다." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://spaceo.co.kr/table-export.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AI 마크다운 표 → 엑셀·이미지 변환기 | 로컬AI툴즈" />
+  <meta property="og:description" content="AI 답변 속 마크다운 표를 복사해 붙여넣기만 하면 엑셀(.xlsx)과 깔끔한 표 이미지(PNG)로 바로 저장됩니다." />
+  <meta property="og:url" content="https://spaceo.co.kr/table-export.html" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --ok: #059669;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .topnav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .topnav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .brand { font-weight: 800; font-size: 1.05rem; color: var(--text); text-decoration: none; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 6px; }
+    .nav-links a {
+      text-decoration: none;
+      color: #374151;
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+    .nav-links a:hover { background: #f3f4f6; }
+    .nav-links a.active { background: #eff6ff; color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 56px; }
+    header { margin-bottom: 18px; }
+    .header-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+    h1 { margin: 0 0 6px; font-size: 1.6rem; letter-spacing: -0.02em; }
+    .trust-badge {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.94rem; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .panel-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .panel-title { font-weight: 700; font-size: 0.96rem; }
+    .stats { font-size: 0.82rem; color: var(--muted); }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #fcfcfd;
+    }
+    textarea:focus { outline: 2px solid rgba(37, 99, 235, 0.2); border-color: var(--accent); background: #fff; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .btn-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    select {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.86rem;
+      background: #fff;
+    }
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #f3f4f6; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.primary:hover { background: var(--accent-hover); }
+    button.green { background: var(--ok); border-color: var(--ok); color: #fff; }
+    button.green:hover { background: #047857; }
+    .preview-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .preview-table th, .preview-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+    .preview-table th:last-child, .preview-table td:last-child { border-right: none; }
+    .preview-table tr:last-child td { border-bottom: none; }
+    .theme-blue th { background: #2563eb; color: #fff; }
+    .theme-blue tr:nth-child(even) td { background: #f8fafc; }
+    .theme-light th { background: #f3f4f6; color: #111827; }
+    .theme-light tr:nth-child(even) td { background: #fafafa; }
+    .theme-dark { background: #111827; color: #f9fafb; }
+    .theme-dark th { background: #1f2937; color: #fff; border-color: #374151; }
+    .theme-dark td { border-color: #374151; }
+    .theme-dark tr:nth-child(even) td { background: #161f2e; }
+    .empty-msg { padding: 32px; text-align: center; color: var(--muted); font-size: 0.9rem; }
+    .section {
+      margin-top: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .section h2 { margin: 0 0 10px; font-size: 1.1rem; }
+    .section p { margin: 0 0 8px; font-size: 0.9rem; color: #4b5563; }
+    footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--text); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <nav class="topnav" aria-label="메인 메뉴">
+    <div class="topnav-inner">
+      <a class="brand" href="index.html">🧰 로컬AI툴즈</a>
+      <div class="nav-links">
+        <a href="cleaner.html">AI 텍스트 클리너</a>
+        <a href="masking.html">개인정보 마스킹</a>
+        <a href="table-export.html" class="active">표 엑셀·이미지 변환</a>
+        <a href="screenshot.html">스크린샷 모자이크</a>
+        <a href="pdf-tools.html">로컬 PDF 도구</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header>
+      <div class="header-top">
+        <h1>AI 마크다운 표 → 엑셀(.xlsx) · 이미지 변환기</h1>
+        <span class="trust-badge">🔒 100% 브라우저 로컬 처리 · 파일 전송 없음</span>
+      </div>
+      <p class="subtitle">챗GPT·Claude 답변 속 마크다운 표를 붙여넣으면 한글 깨짐 없는 엑셀 파일과 깔끔한 표 이미지(PNG)로 즉시 변환합니다.</p>
+    </header>
+
+    <main>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">마크다운 표 붙여넣기 (본문 텍스트가 섞여 있어도 표만 자동 추출)</span>
+          <span class="stats" id="tableStats">0행 × 0열</span>
+        </div>
+        <textarea id="mdInput" placeholder="| 항목 | 가격 | 비고 |&#10;| --- | --- | --- |&#10;| 기본 플랜 | 무료 | 광고 포함 |"></textarea>
+        <div class="toolbar">
+          <div class="btn-group">
+            <button type="button" id="sampleBtn">예시 표 넣기</button>
+            <button type="button" id="clearBtn">지우기</button>
+            <label style="font-size:0.85rem; display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+              <input type="checkbox" id="stripMd" checked /> 셀 안 굵게(**)·코드(`) 기호 자동 제거
+            </label>
+          </div>
+          <div class="btn-group">
+            <select id="themeSelect" aria-label="이미지 테마">
+              <option value="blue">블루 테마</option>
+              <option value="light">클린 화이트</option>
+              <option value="dark">다크 모드</option>
+            </select>
+            <button type="button" class="green" id="xlsxBtn">엑셀(.xlsx) 저장</button>
+            <button type="button" id="csvBtn">CSV 저장</button>
+            <button type="button" class="primary" id="pngBtn">표 이미지(PNG) 저장</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">변환 미리보기</span>
+        </div>
+        <div class="preview-wrap" id="previewContainer">
+          <div class="empty-msg">위 입력창에 AI 마크다운 표를 붙여넣으면 미리보기가 표시됩니다.</div>
+        </div>
+      </div>
+
+      <section class="section">
+        <h2>언제 쓰면 가장 편할까요?</h2>
+        <p>1. 챗GPT나 Claude에게 비교표·일정표·견적표를 작성시킨 뒤, 엑셀에 그대로 붙여넣었을 때 셀이 한 칸에 뭉개지거나 한글 인코딩이 깨질 때 <strong>엑셀(.xlsx) 저장</strong> 버튼을 누르면 바로 해결됩니다.</p>
+        <p>2. 보고서, 카카오톡 단톡방, 네이버 블로그, 인스타그램에 표를 깔끔하게 공유하고 싶을 때 <strong>표 이미지(PNG) 저장</strong>을 누르면 2배 고해상도 이미지로 즉시 다운로드됩니다.</p>
+      </section>
+    </main>
+
+    <footer>
+      <div>© 2026 로컬AI툴즈 (spaceo.co.kr). All rights reserved.</div>
+      <div class="footer-links">
+        <a href="index.html">전체 도구</a>
+        <a href="privacy.html">개인정보처리방침</a>
+        <a href="terms.html">이용약관</a>
+        <a href="mailto:korea.ceosuh@gmail.com">문의하기</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const mdInput = document.getElementById("mdInput");
+    const stripMd = document.getElementById("stripMd");
+    const themeSelect = document.getElementById("themeSelect");
+    const previewContainer = document.getElementById("previewContainer");
+    const tableStats = document.getElementById("tableStats");
+
+    let parsedRows = [];
+
+    function cleanCell(str) {
+      let s = str.trim();
+      if (stripMd.checked) {
+        s = s.replace(/\*\*(.*?)\*\*/g, "$1")
+             .replace(/__(.*?)__/g, "$1")
+             .replace(/`([^`]+)`/g, "$1")
+             .replace(/~~(.*?)~~/g, "$1")
+             .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1");
+      }
+      return s;
+    }
+
+    function parseMarkdownTable(text) {
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.includes("|"));
+      const rows = [];
+      for (const line of lines) {
+        // 구분선 (| --- | :---: |) 제외
+        if (/^\|?[\s:-]+(?:\|[\s:-]+)+\|?$/.test(line)) continue;
+        let trimmed = line;
+        if (trimmed.startsWith("|")) trimmed = trimmed.slice(1);
+        if (trimmed.endsWith("|")) trimmed = trimmed.slice(0, -1);
+        const cells = trimmed.split("|").map(cleanCell);
+        if (cells.length > 0) rows.push(cells);
+      }
+      if (rows.length === 0) return [];
+      const maxCols = Math.max(...rows.map(r => r.length));
+      return rows.map(r => {
+        while (r.length < maxCols) r.push("");
+        return r;
+      });
+    }
+
+    function renderPreview() {
+      parsedRows = parseMarkdownTable(mdInput.value);
+      const theme = themeSelect.value;
+      if (parsedRows.length === 0) {
+        tableStats.textContent = "0행 × 0열";
+        previewContainer.innerHTML = '<div class="empty-msg">위 입력창에 AI 마크다운 표를 붙여넣으면 미리보기가 표시됩니다.</div>';
+        return;
+      }
+      tableStats.textContent = `${parsedRows.length}행 × ${parsedRows[0].length}열`;
+      const table = document.createElement("table");
+      table.className = `preview-table theme-${theme}`;
+
+      const thead = document.createElement("thead");
+      const headTr = document.createElement("tr");
+      parsedRows[0].forEach(cell => {
+        const th = document.createElement("th");
+        th.textContent = cell;
+        headTr.appendChild(th);
+      });
+      thead.appendChild(headTr);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      for (let i = 1; i < parsedRows.length; i++) {
+        const tr = document.createElement("tr");
+        parsedRows[i].forEach(cell => {
+          const td = document.createElement("td");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      previewContainer.innerHTML = "";
+      previewContainer.appendChild(table);
+    }
+
+    document.getElementById("xlsxBtn").addEventListener("click", () => {
+      if (parsedRows.length === 0) return alert("먼저 마크다운 표를 입력해 주세요.");
+      if (typeof XLSX === "undefined") return alert("엑셀 라이브러리를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+      const ws = XLSX.utils.aoa_to_sheet(parsedRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "AI_Table");
+      XLSX.writeFile(wb, "ai-table.xlsx");
+    });
+
+    document.getElementById("csvBtn").addEventListener("click", () => {
+      if (parsedRows.length === 0) return alert("먼저 마크다운 표를 입력해 주세요.");
+      const csv = parsedRows.map(row =>
+        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      ).join("\r\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ai-table.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("pngBtn").addEventListener("click", () => {
+      if (parsedRows.length === 0) return alert("먼저 마크다운 표를 입력해 주세요.");
+      const theme = themeSelect.value;
+      const themes = {
+        blue:  { bg: "#ffffff", headBg: "#2563eb", headTxt: "#ffffff", rowOdd: "#ffffff", rowEven: "#f8fafc", txt: "#111827", border: "#e2e8f0" },
+        light: { bg: "#ffffff", headBg: "#f3f4f6", headTxt: "#111827", rowOdd: "#ffffff", rowEven: "#fafafa", txt: "#111827", border: "#e5e7eb" },
+        dark:  { bg: "#0f172a", headBg: "#1e293b", headTxt: "#f8fafc", rowOdd: "#0f172a", rowEven: "#162033", txt: "#f1f5f9", border: "#334155" }
+      };
+      const t = themes[theme];
+      const scale = 2;
+      const padOuter = 24;
+      const cellPadX = 18;
+      const rowH = 42;
+      const font = '500 15px -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif';
+      const boldFont = '700 15px -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif';
+
+      const measureCanvas = document.createElement("canvas");
+      const mctx = measureCanvas.getContext("2d");
+      const colCount = parsedRows[0].length;
+      const colWidths = new Array(colCount).fill(90);
+
+      parsedRows.forEach((row, rIdx) => {
+        mctx.font = rIdx === 0 ? boldFont : font;
+        row.forEach((cell, cIdx) => {
+          const w = mctx.measureText(cell).width + cellPadX * 2;
+          if (w > colWidths[cIdx]) colWidths[cIdx] = Math.min(w, 420);
+        });
+      });
+
+      const tableW = colWidths.reduce((a, b) => a + b, 0);
+      const tableH = parsedRows.length * rowH;
+      const canvas = document.createElement("canvas");
+      canvas.width = (tableW + padOuter * 2) * scale;
+      canvas.height = (tableH + padOuter * 2) * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(scale, scale);
+
+      ctx.fillStyle = t.bg;
+      ctx.fillRect(0, 0, tableW + padOuter * 2, tableH + padOuter * 2);
+
+      let y = padOuter;
+      parsedRows.forEach((row, rIdx) => {
+        ctx.fillStyle = rIdx === 0 ? t.headBg : (rIdx % 2 === 1 ? t.rowOdd : t.rowEven);
+        ctx.fillRect(padOuter, y, tableW, rowH);
+
+        ctx.font = rIdx === 0 ? boldFont : font;
+        ctx.fillStyle = rIdx === 0 ? t.headTxt : t.txt;
+        ctx.textBaseline = "middle";
+
+        let x = padOuter;
+        row.forEach((cell, cIdx) => {
+          ctx.fillText(cell, x + cellPadX, y + rowH / 2, colWidths[cIdx] - cellPadX * 2);
+          ctx.strokeStyle = t.border;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x, y, colWidths[cIdx], rowH);
+          x += colWidths[cIdx];
+        });
+        y += rowH;
+      });
+
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "ai-table.png";
+      a.click();
+    });
+
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+      mdInput.value =
+        "| 서비스 구분 | 월 이용료 | 주요 특징 | 추천 대상 |\n" +
+        "| :--- | :--- | :--- | :--- |\n" +
+        "| **베이직** | 무료 | 브라우저 100% 로컬 처리 | 개인·학생 |\n" +
+        "| **스탠다드** | `9,900원` | 대용량 일괄 처리 지원 | 프리랜서·블로거 |\n" +
+        "| **프로** | `29,000원` | 팀 공유 및 API 연동 | 스타트업·실무팀 |";
+      renderPreview();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      mdInput.value = "";
+      renderPreview();
+    });
+
+    [mdInput, stripMd, themeSelect].forEach(el => {
+      el.addEventListener("input", renderPreview);
+      el.addEventListener("change", renderPreview);
+    });
+  </script>
+</body>
+</html>
