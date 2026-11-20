@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: hhttps://ai-text-cleaner-smoky.vercel.app/sitemap.xml
+Sitemap: https://ai-text-cleaner-smoky.vercel.app/sitemap.xml
